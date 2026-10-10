@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstraCare | Modern Healthcare & EMR System</title>
+  <meta name="description" content="Integrated Healthcare Appointment & Electronic Medical Record (EMR) System featuring doctor schedules, clinical records, digital prescriptions, billing, and patient portals.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Top Demo Quick Login Bar -->
+  <div class="demo-banner">
+    <div class="demo-banner-title">
+      <i class="fa-solid fa-flask"></i> <strong>Live Demo Quick Switch:</strong>
+    </div>
+    <div class="demo-chips">
+      <button type="button" class="demo-chip" onclick="App.quickLogin('admin@healthcare.local', 'Admin@123')">
+        <i class="fa-solid fa-shield-halved"></i> Admin
+      </button>
+      <button type="button" class="demo-chip" onclick="App.quickLogin('dr.sarah@healthcare.local', 'Doctor@123')">
+        <i class="fa-solid fa-user-doctor"></i> Dr. Sarah (Cardio)
+      </button>
+      <button type="button" class="demo-chip" onclick="App.quickLogin('dr.rajesh@healthcare.local', 'Doctor@123')">
+        <i class="fa-solid fa-stethoscope"></i> Dr. Rajesh (Pedia)
+      </button>
+      <button type="button" class="demo-chip" onclick="App.quickLogin('reception@healthcare.local', 'Reception@123')">
+        <i class="fa-solid fa-clipboard-user"></i> Receptionist
+      </button>
+      <button type="button" class="demo-chip" onclick="App.quickLogin('john.doe@patient.local', 'Patient@123')">
+        <i class="fa-solid fa-hospital-user"></i> Patient: John Doe
+      </button>
+      <button type="button" class="demo-chip" onclick="App.quickLogin('emily.clark@patient.local', 'Patient@123')">
+        <i class="fa-solid fa-hospital-user"></i> Patient: Emily Clark
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand" onclick="App.navigate('home')">
+        <div class="nav-brand-icon">
+          <i class="fa-solid fa-heart-pulse"></i>
+        </div>
+        <div class="nav-brand-text">
+          <h1>AstraCare</h1>
+          <span>Healthcare & EMR Portal</span>
+        </div>
+      </div>
+
+      <ul class="nav-links">
+        <li><a class="nav-link active" id="nav-home" onclick="App.navigate('home')"><i class="fa-solid fa-house"></i> Home</a></li>
+        <li><a class="nav-link" id="nav-doctors" onclick="App.navigate('doctors')"><i class="fa-solid fa-user-doctor"></i> Doctors</a></li>
+        <li><a class="nav-link" id="nav-services" onclick="App.navigate('services')"><i class="fa-solid fa-stethoscope"></i> Specialties</a></li>
+        <li id="nav-portal-item" style="display: none;">
+          <a class="nav-link" id="nav-portal" onclick="App.navigateToCurrentPortal()"><i class="fa-solid fa-gauge-high"></i> My Portal</a>
+        </li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- Theme Toggle -->
+        <button type="button" class="icon-btn" onclick="App.toggleTheme()" title="Toggle Dark/Light Mode" id="theme-toggle-btn">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <!-- Notification Bell (Authenticated) -->
+        <div id="nav-notifications-container" style="display: none; position: relative;">
+          <button type="button" class="icon-btn" onclick="App.toggleNotificationModal()" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            <span class="badge-count" id="notif-count-badge" style="display: none;">0</span>
+          </button>
+        </div>
+
+        <!-- Auth State Buttons -->
+        <div id="nav-auth-buttons">
+          <button type="button" class="btn btn-outline btn-sm" onclick="App.openLoginModal()">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="App.openRegisterModal()">
+            <i class="fa-solid fa-user-plus"></i> Register
+          </button>
+        </div>
+
+        <!-- Authenticated User Profile Menu -->
+        <div id="nav-user-profile" style="display: none; align-items: center; gap: 10px;">
+          <div class="user-profile-badge">
+            <div class="user-avatar" id="nav-user-avatar">U</div>
+            <div class="user-meta">
+              <span class="user-meta-name" id="nav-user-name">User</span>
+              <span class="user-meta-role" id="nav-user-role">Role</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="App.logout()" title="Sign Out">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Drawer / Modal -->
+  <div class="modal-backdrop" id="notification-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-bell"></i> Notifications & Alerts</h3>
+        <button type="button" class="modal-close" onclick="App.toggleNotificationModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="notifications-list-container">
+        <!-- Loaded dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTENT AREA -->
+  <main class="container">
+
+    <!-- ==================================================================== -->
+    <!-- 1. PUBLIC LANDING VIEW -->
+    <!-- ==================================================================== -->
+    <section id="view-home">
+      <!-- Hero Banner -->
+      <div class="hero-section">
+        <div>
+          <div class="hero-tag">
+            <i class="fa-solid fa-shield-virus"></i> Clinical Excellence & Certified EMR
+          </div>
+          <h1 class="hero-title">Empowering Healthier Futures with Integrated Care.</h1>
+          <p class="hero-subtitle">
+            Experience conflict-free medical appointments, encrypted Electronic Medical Records, verified prescription tracking, and transparent patient care all in one unified platform.
+          </p>
+          <div class="hero-cta-group">
+            <button type="button" class="btn btn-primary btn-lg" onclick="App.handleBookNowCta()">
+              <i class="fa-solid fa-calendar-check"></i> Book an Appointment
+            </button>
+            <button type="button" class="btn btn-secondary btn-lg" onclick="App.navigate('doctors')">
+              <i class="fa-solid fa-user-doctor"></i> View Our Doctors
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 1.25rem;">Live Clinic Status</h3>
+            <span class="badge badge-active"><i class="fa-solid fa-circle" style="font-size: 0.55rem;"></i> Active System</span>
+          </div>
+          <p style="font-size: 0.875rem; color: var(--text-muted);">
+            Real-time synchronization between outpatient booking desks, consulting physicians, clinical labs, and pharmacy records.
+          </p>
+          <div class="stat-grid-hero">
+            <div class="hero-stat-item">
+              <div class="hero-stat-num" id="hero-stat-docs">12+</div>
+              <div class="hero-stat-label">Specialist Doctors</div>
+            </div>
+            <div class="hero-stat-item">
+              <div class="hero-stat-num" id="hero-stat-appts">99.8%</div>
+              <div class="hero-stat-label">Conflict-Free Slots</div>
+            </div>
+            <div class="hero-stat-item">
+              <div class="hero-stat-num">24/7</div>
+              <div class="hero-stat-label">EMR Record Access</div>
+            </div>
+            <div class="hero-stat-item">
+              <div class="hero-stat-num"><i class="fa-solid fa-lock" style="font-size: 1.4rem;"></i></div>
+              <div class="hero-stat-label">Encrypted Data</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Features -->
+      <div style="margin-top: 20px;">
+        <h2 style="font-size: 1.75rem; text-align: center; margin-bottom: 8px;">Comprehensive Healthcare Services</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">
+          Designed for modern hospitals, medical centers, clinicians, and patients.
+        </p>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon" style="background: var(--primary-light); color: var(--primary);">
+              <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <h3>Smart Scheduling</h3>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 8px;">
+              Real-time slot availability engine automatically verifies doctor hours and eliminates double bookings.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="background: var(--secondary-light); color: var(--secondary);">
+              <i class="fa-solid fa-file-medical"></i>
+            </div>
+            <h3>Electronic Medical Records</h3>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 8px;">
+              Centralized diagnoses, treatment history, laboratory files, and clinical progress notes accessible under strict role permissions.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="background: var(--accent-light); color: var(--accent);">
+              <i class="fa-solid fa-prescription-bottle-medical"></i>
+            </div>
+            <h3>Digital Prescriptions</h3>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 8px;">
+              Physicians issue precise dosages, duration, and instructions. Patients can view and download official PDF prescriptions instantly.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="background: var(--success-light); color: var(--success);">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <h3>Transparent Billing</h3>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 8px;">
+              Clear appointment invoice breakdown with simulated instant digital payments and payment receipt generations.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doctors Directory Preview -->
+      <div style="margin-top: 50px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-size: 1.6rem;">Available Medical Specialists</h2>
+            <p style="color: var(--text-muted); font-size: 0.875rem;">Consult with our board-certified clinical experts</p>
+          </div>
+          <div>
+            <input type="text" id="landing-doc-search" class="form-control" placeholder="Search by name or specialty..." style="min-width: 280px;" oninput="App.filterLandingDoctors()">
+          </div>
+        </div>
+
+        <div id="landing-doctors-grid" class="features-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- 2. PATIENT DASHBOARD / PORTAL -->
+    <!-- ==================================================================== -->
+    <section id="view-patient-portal" style="display: none;">
+      <div class="dashboard-header">
+        <div class="dashboard-title-group">
+          <h2>Patient Health Dashboard</h2>
+          <p id="patient-welcome-subtitle">Welcome back! Manage your consultations, clinical records, and prescriptions.</p>
+        </div>
+        <div>
+          <button type="button" class="btn btn-primary" onclick="App.openBookingModal()">
+            <i class="fa-solid fa-plus"></i> Book New Appointment
+          </button>
+        </div>
+      </div>
+
+      <!-- Patient KPIs -->
+      <div class="metrics-row">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--primary-light); color: var(--primary);">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Upcoming Visits</div>
+            <div class="kpi-value" id="pt-stat-upcoming">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--accent-light); color: var(--accent);">
+            <i class="fa-solid fa-prescription"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Active Prescriptions</div>
+            <div class="kpi-value" id="pt-stat-prescriptions">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--secondary-light); color: var(--secondary);">
+            <i class="fa-solid fa-notes-medical"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">EMR Medical Records</div>
+            <div class="kpi-value" id="pt-stat-records">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--warning-light); color: #b45309;">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Unpaid Invoices</div>
+            <div class="kpi-value" id="pt-stat-unpaid">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient Portal Navigation Tabs -->
+      <div class="portal-nav">
+        <button type="button" class="portal-tab active" onclick="App.switchPatientTab('appts', this)">
+          <i class="fa-solid fa-calendar-days"></i> My Appointments
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchPatientTab('emr', this)">
+          <i class="fa-solid fa-file-medical"></i> Medical Records (EMR)
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchPatientTab('prescriptions', this)">
+          <i class="fa-solid fa-prescription-bottle"></i> Prescriptions
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchPatientTab('lab', this)">
+          <i class="fa-solid fa-flask-vial"></i> Diagnostic & Lab Files
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchPatientTab('billing', this)">
+          <i class="fa-solid fa-credit-card"></i> Invoices & Payments
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchPatientTab('profile', this)">
+          <i class="fa-solid fa-user-gear"></i> Demographics & Profile
+        </button>
+      </div>
+
+      <!-- Tab Content: Appointments -->
+      <div id="pt-tab-appts" class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Consultation Schedule</h3>
+          <button type="button" class="btn btn-primary btn-sm" onclick="App.openBookingModal()">
+            <i class="fa-solid fa-plus"></i> Book Appointment
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table id="pt-appointments-table">
+              <thead>
+                <tr>
+                  <th>Date & Time</th>
+                  <th>Consulting Physician</th>
+                  <th>Department</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pt-appointments-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: EMR -->
+      <div id="pt-tab-emr" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-notes-medical"></i> Clinical Records History</h3>
+        </div>
+        <div class="card-body" id="pt-emr-container">
+          <!-- Dynamically loaded EMR records -->
+        </div>
+      </div>
+
+      <!-- Tab Content: Prescriptions -->
+      <div id="pt-tab-prescriptions" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-pills"></i> Authorized Prescriptions</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Doctor</th>
+                  <th>Medication & Dosage</th>
+                  <th>Duration</th>
+                  <th>Instructions</th>
+                  <th>Official PDF</th>
+                </tr>
+              </thead>
+              <tbody id="pt-prescriptions-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Lab Reports -->
+      <div id="pt-tab-lab" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-microscope"></i> Laboratory Documents & Test Results</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Test Date</th>
+                  <th>Diagnostic Test Name</th>
+                  <th>Ordering Doctor</th>
+                  <th>Result Summary</th>
+                  <th>Download File</th>
+                </tr>
+              </thead>
+              <tbody id="pt-lab-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Billing -->
+      <div id="pt-tab-billing" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-file-invoice-dollar"></i> Patient Billing & Payments</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Consultation</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Payment Method</th>
+                  <th>Transaction Ref</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="pt-billing-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Profile Demographics -->
+      <div id="pt-tab-profile" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-address-card"></i> Patient Profile & Emergency Contact</h3>
+        </div>
+        <div class="card-body">
+          <form id="pt-profile-form" onsubmit="App.savePatientProfile(event)">
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label">Full Legal Name</label>
+                <input type="text" id="pt-prof-name" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address (Read-only)</label>
+                <input type="email" id="pt-prof-email" class="form-control" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" id="pt-prof-phone" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" id="pt-prof-dob" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select id="pt-prof-gender" class="form-control">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Blood Group</label>
+                <input type="text" id="pt-prof-blood" class="form-control" placeholder="e.g. O+, A+">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Residential Address</label>
+              <input type="text" id="pt-prof-address" class="form-control">
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Emergency Contact Name</label>
+                <input type="text" id="pt-prof-emg-name" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Emergency Contact Phone</label>
+                <input type="text" id="pt-prof-emg-phone" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Known Allergies / Medical History</label>
+              <textarea id="pt-prof-history" class="form-control"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i> Save Demographics
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- 3. DOCTOR DASHBOARD / PORTAL -->
+    <!-- ==================================================================== -->
+    <section id="view-doctor-portal" style="display: none;">
+      <div class="dashboard-header">
+        <div class="dashboard-title-group">
+          <h2>Physician Clinical Portal</h2>
+          <p id="doc-welcome-subtitle">Clinical consultation queue, EMR records, and electronic prescribing.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="App.openDoctorScheduleModal()">
+            <i class="fa-solid fa-clock"></i> My Working Hours
+          </button>
+          <button type="button" class="btn btn-primary" onclick="App.openCreateEmrModal()">
+            <i class="fa-solid fa-file-circle-plus"></i> New Clinical Record
+          </button>
+        </div>
+      </div>
+
+      <!-- Doctor KPIs -->
+      <div class="metrics-row">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--primary-light); color: var(--primary);">
+            <i class="fa-solid fa-stethoscope"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Consultations Today</div>
+            <div class="kpi-value" id="doc-stat-today">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--secondary-light); color: var(--secondary);">
+            <i class="fa-solid fa-user-injured"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Total Active Patients</div>
+            <div class="kpi-value" id="doc-stat-patients">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--accent-light); color: var(--accent);">
+            <i class="fa-solid fa-prescription-bottle-medical"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Prescriptions Issued</div>
+            <div class="kpi-value" id="doc-stat-rx">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doctor Navigation Tabs -->
+      <div class="portal-nav">
+        <button type="button" class="portal-tab active" onclick="App.switchDoctorTab('queue', this)">
+          <i class="fa-solid fa-calendar-day"></i> Consultation Queue
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchDoctorTab('emr', this)">
+          <i class="fa-solid fa-file-waveform"></i> EMR Clinical Records
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchDoctorTab('rx', this)">
+          <i class="fa-solid fa-pills"></i> Issued Prescriptions
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchDoctorTab('lab', this)">
+          <i class="fa-solid fa-file-arrow-up"></i> Upload Lab Reports
+        </button>
+      </div>
+
+      <!-- Tab: Consultation Queue -->
+      <div id="doc-tab-queue" class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-users-line"></i> Patient Appointment Queue</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time / Date</th>
+                  <th>Patient Name</th>
+                  <th>Phone / Email</th>
+                  <th>Reason for Consultation</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="doc-queue-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: EMR Records -->
+      <div id="doc-tab-emr" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-file-medical"></i> Clinical Records & Diagnoses</h3>
+          <button type="button" class="btn btn-primary btn-sm" onclick="App.openCreateEmrModal()">
+            <i class="fa-solid fa-plus"></i> Add Clinical Record
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="doc-emr-list">
+            <!-- Dynamically loaded -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Prescriptions -->
+      <div id="doc-tab-rx" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-prescription"></i> Medication Prescriptions</h3>
+          <button type="button" class="btn btn-primary btn-sm" onclick="App.openCreateRxModal()">
+            <i class="fa-solid fa-plus"></i> Issue Prescription
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Patient</th>
+                  <th>Medication</th>
+                  <th>Dosage</th>
+                  <th>Duration</th>
+                  <th>Instructions</th>
+                  <th>PDF</th>
+                </tr>
+              </thead>
+              <tbody id="doc-rx-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Upload Lab Reports -->
+      <div id="doc-tab-lab" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-upload"></i> Attach Diagnostic / Laboratory Document</h3>
+        </div>
+        <div class="card-body">
+          <form id="doc-upload-lab-form" onsubmit="App.handleLabUpload(event)">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Select Patient</label>
+                <select id="lab-upload-patient" class="form-control" required></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Diagnostic Test Name</label>
+                <input type="text" id="lab-upload-testname" class="form-control" placeholder="e.g. Complete Blood Count (CBC)" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Clinical Diagnostic Summary / Findings</label>
+              <textarea id="lab-upload-summary" class="form-control" placeholder="Key clinical findings and lab indicators..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Diagnostic Report File (PDF, PNG, JPG, JPEG, TXT, DOCX - Max 10MB)</label>
+              <input type="file" id="lab-upload-file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.txt,.docx" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload Document
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- 4. RECEPTION STAFF DASHBOARD / PORTAL -->
+    <!-- ==================================================================== -->
+    <section id="view-reception-portal" style="display: none;">
+      <div class="dashboard-header">
+        <div class="dashboard-title-group">
+          <h2>Reception & Front Desk Portal</h2>
+          <p>Admit patients, check doctor availability, and coordinate hospital appointments.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn btn-primary" onclick="App.openStaffRegisterPatientModal()">
+            <i class="fa-solid fa-user-plus"></i> Register Walk-in Patient
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="App.openBookingModal()">
+            <i class="fa-solid fa-calendar-plus"></i> Schedule Appointment
+          </button>
+        </div>
+      </div>
+
+      <!-- Reception Navigation Tabs -->
+      <div class="portal-nav">
+        <button type="button" class="portal-tab active" onclick="App.switchReceptionTab('master', this)">
+          <i class="fa-solid fa-calendar-check"></i> Master Clinic Schedule
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchReceptionTab('directory', this)">
+          <i class="fa-solid fa-hospital-user"></i> Patient Directory
+        </button>
+      </div>
+
+      <!-- Tab: Master Schedule -->
+      <div id="rec-tab-master" class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-list-check"></i> All Outpatient Bookings</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date & Time</th>
+                  <th>Patient</th>
+                  <th>Doctor</th>
+                  <th>Specialty</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rec-schedule-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Patient Directory -->
+      <div id="rec-tab-directory" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-address-book"></i> Registered Patients</h3>
+          <input type="text" id="rec-patient-search" class="form-control" placeholder="Search patients by name, email, or phone..." style="max-width: 300px;" oninput="App.searchReceptionPatients()">
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Patient ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>DOB</th>
+                  <th>Emergency Contact</th>
+                  <th>Quick Action</th>
+                </tr>
+              </thead>
+              <tbody id="rec-patients-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- 5. ADMINISTRATOR DASHBOARD / PORTAL -->
+    <!-- ==================================================================== -->
+    <section id="view-admin-portal" style="display: none;">
+      <div class="dashboard-header">
+        <div class="dashboard-title-group">
+          <h2>Administrator Executive Console</h2>
+          <p>System metrics, user lifecycle management, financial revenue, audit logs, and reports.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <a href="/api/reports/export-pdf" target="_blank" class="btn btn-secondary">
+            <i class="fa-solid fa-file-pdf"></i> Download Operations PDF
+          </a>
+          <button type="button" class="btn btn-primary" onclick="App.openCreateStaffModal()">
+            <i class="fa-solid fa-user-shield"></i> Add Medical / Staff User
+          </button>
+        </div>
+      </div>
+
+      <!-- System KPI Cards -->
+      <div class="metrics-row">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--primary-light); color: var(--primary);">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Total Patients</div>
+            <div class="kpi-value" id="adm-stat-patients">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--secondary-light); color: var(--secondary);">
+            <i class="fa-solid fa-user-doctor"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Active Doctors</div>
+            <div class="kpi-value" id="adm-stat-doctors">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--accent-light); color: var(--accent);">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Total Consultations</div>
+            <div class="kpi-value" id="adm-stat-appts">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">
+            <i class="fa-solid fa-circle-dollar-to-slot"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Paid Revenue</div>
+            <div class="kpi-value" id="adm-stat-revenue">$0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Navigation Tabs -->
+      <div class="portal-nav">
+        <button type="button" class="portal-tab active" onclick="App.switchAdminTab('users', this)">
+          <i class="fa-solid fa-users-gear"></i> User Accounts
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchAdminTab('billing', this)">
+          <i class="fa-solid fa-receipt"></i> Billing Oversight
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchAdminTab('audit', this)">
+          <i class="fa-solid fa-shield-halved"></i> Security Audit Trail
+        </button>
+        <button type="button" class="portal-tab" onclick="App.switchAdminTab('mail', this)">
+          <i class="fa-solid fa-envelope-open-text"></i> Dev Email Simulator
+        </button>
+      </div>
+
+      <!-- Tab: User Accounts -->
+      <div id="adm-tab-users" class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-users"></i> Platform Users & Access Control</h3>
+          <button type="button" class="btn btn-primary btn-sm" onclick="App.openCreateStaffModal()">
+            <i class="fa-solid fa-plus"></i> New Staff Account
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Toggle Status</th>
+                </tr>
+              </thead>
+              <tbody id="adm-users-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Billing Oversight -->
+      <div id="adm-tab-billing" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-file-invoice"></i> Hospital Billing & Revenue Stream</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice ID</th>
+                  <th>Patient</th>
+                  <th>Doctor</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Payment Method</th>
+                  <th>Transaction Reference</th>
+                </tr>
+              </thead>
+              <tbody id="adm-billing-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Audit Logs -->
+      <div id="adm-tab-audit" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-list-ol"></i> System Event & Audit Logs</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Actor Email</th>
+                  <th>Role</th>
+                  <th>Action</th>
+                  <th>Entity</th>
+                  <th>IP Address</th>
+                  <th>Event Details</th>
+                </tr>
+              </thead>
+              <tbody id="adm-audit-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Dev Email Simulator -->
+      <div id="adm-tab-mail" class="card" style="display: none;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-envelope"></i> Simulated Outbound Emails (Dev Mode)</h3>
+          <span class="badge badge-active">Live Dev Preview</span>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Recipient</th>
+                  <th>Subject</th>
+                  <th>Email Body Preview</th>
+                  <th>Delivery Mode</th>
+                </tr>
+              </thead>
+              <tbody id="adm-mail-tbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================================================================== -->
+  <!-- MODALS -->
+  <!-- ==================================================================== -->
+
+  <!-- 1. Login Modal -->
+  <div class="modal-backdrop" id="modal-login">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In to AstraCare</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-login" onsubmit="App.handleLogin(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="login-email" class="form-control" placeholder="name@healthcare.local" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+            <a href="javascript:void(0)" onclick="App.openForgotPasswordModal()">Forgot Password?</a>
+            <a href="javascript:void(0)" onclick="App.openRegisterModal()">Need an account? Register</a>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Patient Register Modal -->
+  <div class="modal-backdrop" id="modal-register">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-user-plus"></i> Patient Account Registration</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-register" onsubmit="App.handleRegister(event)">
+        <div class="modal-body">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="reg-name" class="form-control" placeholder="e.g. John Doe" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="reg-email" class="form-control" placeholder="john.doe@patient.local" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Password (Min 6 chars)</label>
+              <input type="password" id="reg-password" class="form-control" placeholder="••••••••" minlength="6" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" id="reg-phone" class="form-control" placeholder="+1-555-0104" required>
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" id="reg-dob" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select id="reg-gender" class="form-control" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Blood Group</label>
+              <select id="reg-blood" class="form-control">
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Residential Address</label>
+            <input type="text" id="reg-address" class="form-control" placeholder="Street, City, State">
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Emergency Contact Name</label>
+              <input type="text" id="reg-emg-name" class="form-control" placeholder="e.g. Jane Doe">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Emergency Contact Phone</label>
+              <input type="text" id="reg-emg-phone" class="form-control" placeholder="+1-555-0199">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Past Medical History / Known Allergies</label>
+            <textarea id="reg-history" class="form-control" placeholder="Describe any pre-existing conditions or allergies..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Complete Registration</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Forgot / Reset Password Modal -->
+  <div class="modal-backdrop" id="modal-forgot-password">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-key"></i> Password Recovery</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-forgot-password" onsubmit="App.handleForgotPassword(event)">
+        <div class="modal-body">
+          <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 16px;">
+            Enter your account email. In development mode, the simulated verification code will appear in the Dev Notification Log.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Account Email</label>
+            <input type="email" id="forgot-email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" id="forgot-new-password" class="form-control" minlength="6" placeholder="Enter new password (min 6 characters)" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-arrows-rotate"></i> Reset Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Book Appointment Modal with Dynamic Slot Engine -->
+  <div class="modal-backdrop" id="modal-booking">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-calendar-plus"></i> Schedule Clinical Consultation</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-booking" onsubmit="App.handleBookingSubmit(event)">
+        <div class="modal-body">
+          <!-- Patient Selector (Shown for Reception/Admin only) -->
+          <div class="form-group" id="booking-patient-selector-group" style="display: none;">
+            <label class="form-label">Select Patient</label>
+            <select id="booking-patient-select" class="form-control"></select>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Choose Specialist Doctor</label>
+              <select id="booking-doctor-select" class="form-control" required onchange="App.onBookingDoctorOrDateChange()"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Appointment Date</label>
+              <input type="date" id="booking-date" class="form-control" required onchange="App.onBookingDoctorOrDateChange()">
+            </div>
+          </div>
+
+          <!-- Dynamic Slots Grid -->
+          <div class="form-group">
+            <label class="form-label">Select Available Time Slot (30-min Consultation)</label>
+            <div id="booking-slots-container" class="slots-container">
+              <p style="color: var(--text-muted); font-size: 0.85rem;">Please select a doctor and date to view live availability slots.</p>
+            </div>
+            <input type="hidden" id="booking-selected-time" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Reason for Visit / Primary Symptoms</label>
+            <input type="text" id="booking-reason" class="form-control" placeholder="e.g. Annual cardiovascular checkup, headache, etc." required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Additional Clinical Notes (Optional)</label>
+            <textarea id="booking-notes" class="form-control" placeholder="Any symptoms, medical questions, or history..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-calendar-check"></i> Confirm Booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Reschedule Appointment Modal -->
+  <div class="modal-backdrop" id="modal-reschedule">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-clock-rotate-left"></i> Reschedule Appointment</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-reschedule" onsubmit="App.handleRescheduleSubmit(event)">
+        <div class="modal-body">
+          <input type="hidden" id="reschedule-appt-id">
+          <input type="hidden" id="reschedule-doc-id">
+          
+          <div class="form-group">
+            <label class="form-label">New Appointment Date</label>
+            <input type="date" id="reschedule-date" class="form-control" required onchange="App.onRescheduleDateChange()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Select Available Time Slot</label>
+            <div id="reschedule-slots-container" class="slots-container">
+              <p style="color: var(--text-muted); font-size: 0.85rem;">Pick a date to fetch doctor's open slots.</p>
+            </div>
+            <input type="hidden" id="reschedule-selected-time" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Confirm Reschedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. Payment Simulation Modal -->
+  <div class="modal-backdrop" id="modal-payment">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-credit-card"></i> Simulated Payment Gateway</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-payment" onsubmit="App.handlePaymentSubmit(event)">
+        <div class="modal-body">
+          <div style="background: var(--bg-subtle); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted);">OUTSTANDING INVOICE AMOUNT</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary);" id="pay-modal-amount">$0.00</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);" id="pay-modal-invoice">Invoice: ...</div>
+          </div>
+          <input type="hidden" id="pay-billing-id">
+
+          <div class="form-group">
+            <label class="form-label">Select Payment Method</label>
+            <select id="pay-method" class="form-control" required>
+              <option value="Credit Card (Simulated Demo)">Credit Card (Simulated Demo)</option>
+              <option value="Debit Card (Simulated Demo)">Debit Card (Simulated Demo)</option>
+              <option value="UPI / Net Banking (Simulated Demo)">UPI / Net Banking (Simulated Demo)</option>
+              <option value="Health Insurance Voucher (Demo)">Health Insurance Voucher (Demo)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cardholder / Payer Name</label>
+            <input type="text" id="pay-name" class="form-control" placeholder="e.g. John Doe" required>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Card Number (Simulated Demo)</label>
+              <input type="text" class="form-control" placeholder="•••• •••• •••• 4242" value="4111 2222 3333 4242" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">CVV / Expiry</label>
+              <input type="text" class="form-control" placeholder="12/28 - 123" value="12/28 - 888" disabled>
+            </div>
+          </div>
+
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">
+            <i class="fa-solid fa-lock"></i> <em>Demo Security Notice: This is a simulated transaction. No real credit card or payment credentials are stored or processed.</em>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-success"><i class="fa-solid fa-shield-check"></i> Authorize & Pay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 7. Create EMR Medical Record Modal (Doctor) -->
+  <div class="modal-backdrop" id="modal-create-emr">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-file-waveform"></i> Create Patient EMR Record</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-create-emr" onsubmit="App.handleCreateEmrSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Patient</label>
+              <select id="emr-patient-select" class="form-control" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Record Date</label>
+              <input type="date" id="emr-date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Primary Clinical Diagnosis</label>
+            <input type="text" id="emr-diagnosis" class="form-control" placeholder="e.g. Essential Hypertension Stage 1" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Treatment Plan & Medical Recommendations</label>
+            <textarea id="emr-treatment" class="form-control" placeholder="Prescriptions, lifestyle modifications, or follow-up plan..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Clinical Observations & Physical Examination Notes</label>
+            <textarea id="emr-clinical-notes" class="form-control" placeholder="Blood pressure, heart sounds, physical exam observations..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Relevant Medical History Notes</label>
+            <textarea id="emr-history-notes" class="form-control" placeholder="Family history, chronic indicators..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save EMR Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 8. Create Prescription Modal (Doctor) -->
+  <div class="modal-backdrop" id="modal-create-rx">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-pills"></i> Issue Medical Prescription</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-create-rx" onsubmit="App.handleCreateRxSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Patient</label>
+            <select id="rx-patient-select" class="form-control" required></select>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Medication Name</label>
+              <input type="text" id="rx-medication" class="form-control" placeholder="e.g. Amoxicillin" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dosage</label>
+              <input type="text" id="rx-dosage" class="form-control" placeholder="e.g. 500mg twice daily" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Treatment Duration</label>
+            <input type="text" id="rx-duration" class="form-control" placeholder="e.g. 7 days, 1 month" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Specific Patient Instructions</label>
+            <textarea id="rx-instructions" class="form-control" placeholder="Take with food, avoid alcohol, etc."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Issue Prescription</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 9. Create Staff Modal (Admin) -->
+  <div class="modal-backdrop" id="modal-create-staff">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-user-shield"></i> Create Staff Member</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-create-staff" onsubmit="App.handleCreateStaffSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Staff Role</label>
+              <select id="staff-role" class="form-control" required onchange="App.onStaffRoleChange()">
+                <option value="ROLE_DOCTOR">Physician / Doctor</option>
+                <option value="ROLE_RECEPTIONIST">Reception Desk Staff</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="staff-name" class="form-control" placeholder="Dr. John Smith" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Official Email</label>
+              <input type="email" id="staff-email" class="form-control" placeholder="jsmith@healthcare.local" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Initial Password</label>
+              <input type="password" id="staff-password" class="form-control" value="Staff@123" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" id="staff-phone" class="form-control" placeholder="+1-555-0155" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Department</label>
+              <input type="text" id="staff-dept" class="form-control" placeholder="e.g. Cardiology, Front Desk" required>
+            </div>
+          </div>
+
+          <!-- Doctor specific fields -->
+          <div id="staff-doctor-fields">
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label">Specialization</label>
+                <input type="text" id="staff-spec" class="form-control" placeholder="e.g. Neurology">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Qualification</label>
+                <input type="text" id="staff-qual" class="form-control" placeholder="e.g. MD, FACS">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Consultation Fee ($)</label>
+                <input type="number" id="staff-fee" class="form-control" value="75.00" step="5">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 10. Doctor Schedule / Hours Modal -->
+  <div class="modal-backdrop" id="modal-doc-schedule">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-clock"></i> Doctor Working Hours & Shift</h3>
+        <button type="button" class="modal-close" onclick="App.closeModals()">&times;</button>
+      </div>
+      <form id="form-doc-schedule" onsubmit="App.handleDocScheduleSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Available Days (Comma separated: MON,TUE,WED,THU,FRI,SAT)</label>
+            <input type="text" id="doc-sched-days" class="form-control" value="MON,TUE,WED,THU,FRI" required>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Shift Start Time (HH:mm)</label>
+              <input type="time" id="doc-sched-start" class="form-control" value="09:00" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Shift End Time (HH:mm)</label>
+              <input type="time" id="doc-sched-end" class="form-control" value="17:00" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Update Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div>
+        <strong>AstraCare Healthcare & EMR Platform</strong> &copy; 2026. Certified Software Engineering System.
+      </div>
+      <div>
+        <span style="margin-right: 14px;"><i class="fa-solid fa-shield-heart" style="color: var(--secondary);"></i> Role-Based Access Control</span>
+        <span><i class="fa-solid fa-database" style="color: var(--primary);"></i> MySQL & Spring Data JPA</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
